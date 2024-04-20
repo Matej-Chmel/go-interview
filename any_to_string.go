@@ -28,7 +28,7 @@ func structToString(a reflect.Value) string {
 	builder.WriteRune('{')
 
 	for i := 0; i < lastIndex; i++ {
-		builder.WriteString(fmt.Sprintf("%v,", a.Field(i)))
+		builder.WriteString(fmt.Sprintf("%v, ", a.Field(i)))
 	}
 
 	builder.WriteString(fmt.Sprintf("%v}", a.Field(lastIndex)))
