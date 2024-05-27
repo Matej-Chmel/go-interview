@@ -7,6 +7,11 @@ import (
 	goi "github.com/Matej-Chmel/go-interview"
 )
 
+func badSolution(slice []byte) []byte {
+	slice[0] = byte('a')
+	return slice
+}
+
 func byteSolution(slice []byte) int {
 	res := 0
 
@@ -29,6 +34,26 @@ func runeSolution(slice []rune) int {
 	}
 
 	return res
+}
+
+func TestBadBytes(t *testing.T) {
+	it := goi.NewInterview[[]byte, []byte]()
+
+	it.AddCase([]byte("helloWORLD"), []byte("helloWORLD"))
+	it.AddSolution(badSolution)
+
+	c := NewChecker[int, int]("badSolution", t)
+	res, err := it.RunSolution("badSolution")
+
+	if err != nil {
+		c.TestError("Function not found", 1)
+	}
+
+	r0 := res[0].String()
+
+	if !strings.Contains(r0, "\"aelloWORLD\" != \"helloWORLD\"") {
+		c.TestErrorf("Found: %s", r0)
+	}
 }
 
 func TestBytes(t *testing.T) {

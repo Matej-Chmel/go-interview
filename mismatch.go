@@ -32,8 +32,8 @@ func checkForMismatch(a, b reflect.Value, fType string) *Mismatch {
 
 	return &Mismatch{
 		Field: fType,
-		Left:  fmt.Sprintf("%v", a.Interface()),
-		Right: fmt.Sprintf("%v", b.Interface()),
+		Left:  valueToString(a),
+		Right: valueToString(b),
 	}
 }
 
