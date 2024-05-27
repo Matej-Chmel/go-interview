@@ -19,9 +19,9 @@ func NewChecker[I any, O any](fname string, t *testing.T) Checker[I, O] {
 	return Checker[I, O]{fname, t, make([]goi.Mismatch, 0)}
 }
 
-func (c *Checker[I, O]) AddMismatch(field string, left string, right string) {
+func (c *Checker[I, O]) AddMismatch(field string, actual string, expected string) {
 	c.mismatches = append(c.mismatches, goi.Mismatch{
-		Field: field, Left: left, Right: right})
+		Field: field, Actual: actual, Expected: expected})
 }
 
 func (c *Checker[I, O]) Clear() {
@@ -71,7 +71,7 @@ func (c *Checker[I, O]) Throw(report goi.Report[I, O]) {
 
 func (c *Checker[I, O]) string() string {
 	return sliceToStringCustom(c.mismatches, "\n\n", func(m goi.Mismatch) string {
-		return fmt.Sprintf("%s: \"%s\" <--> \"%s\"", m.Field, m.Left, m.Right)
+		return fmt.Sprintf("%s: \"%s\" <--> \"%s\"", m.Field, m.Actual, m.Expected)
 	})
 }
 

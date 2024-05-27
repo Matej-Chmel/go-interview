@@ -7,21 +7,21 @@ import (
 
 // Stores values of one mismatched field of actual and expected input.
 type Mismatch struct {
-	Field string
-	Left  string
-	Right string
+	Field    string
+	Actual   string
+	Expected string
 }
 
 // Compares two instances of struct Mismatch.
 func (m *Mismatch) Equals(o Mismatch) bool {
 	return (m.Field == o.Field &&
-		m.Left == o.Left &&
-		m.Right == o.Right)
+		m.Actual == o.Actual &&
+		m.Expected == o.Expected)
 }
 
 // Converts mismatch to a string.
 func (m Mismatch) String() string {
-	return fmt.Sprintf("%s: \"%s\" != \"%s\"", m.Field, m.Left, m.Right)
+	return fmt.Sprintf("%s: \"%s\" != \"%s\"", m.Field, m.Actual, m.Expected)
 }
 
 // Checks for mismatch between primitive types.
@@ -31,9 +31,9 @@ func checkForMismatch(a, b reflect.Value, fType string) *Mismatch {
 	}
 
 	return &Mismatch{
-		Field: fType,
-		Left:  valueToString(a),
-		Right: valueToString(b),
+		Field:    fType,
+		Actual:   valueToString(a),
+		Expected: valueToString(b),
 	}
 }
 
