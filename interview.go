@@ -22,7 +22,7 @@ func NewInterview[I any, O any]() *Interview[I, O] {
 
 // Adds case from input and expected output.
 func (i *Interview[I, O]) AddCase(input I, output O) *Interview[I, O] {
-	i.Cases = append(i.Cases, NewCase(input, output))
+	i.Cases = append(i.Cases, NewCase(&input, &output))
 	return i
 }
 

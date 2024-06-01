@@ -25,7 +25,7 @@ func (m Mismatch) String() string {
 }
 
 // Checks for mismatch between primitive types.
-func checkForMismatch(a, b reflect.Value, fType string) *Mismatch {
+func checkForMismatch(a, b *reflect.Value, fType string) *Mismatch {
 	if reflect.DeepEqual(a.Interface(), b.Interface()) {
 		return nil
 	}
@@ -40,8 +40,7 @@ func checkForMismatch(a, b reflect.Value, fType string) *Mismatch {
 // Checks for multiple mismatches between two interfaces.
 // Interfaces can be primitive types or structs.
 func findMismatches(pA, pB interface{}) []Mismatch {
-	a := reflect.ValueOf(pA)
-	b := reflect.ValueOf(pB)
+	a, b := reflect.ValueOf(pA), reflect.ValueOf(pB)
 	res := []Mismatch{}
 
 	if a.Type() != b.Type() {
@@ -50,11 +49,11 @@ func findMismatches(pA, pB interface{}) []Mismatch {
 		nFields := a.NumField()
 
 		for i := 0; i < nFields; i++ {
-			res = processComparison(
-				a.Field(i), b.Field(i), a.Type().Field(i).Name, res)
+			aVal, bVal := a.Field(i), b.Field(i)
+			res = processComparison(&aVal, &bVal, a.Type().Field(i).Name, res)
 		}
 	} else {
-		res = processComparison(a, b, "Value", res)
+		res = processComparison(&a, &b, "Value", res)
 	}
 
 	return res
@@ -62,7 +61,7 @@ func findMismatches(pA, pB interface{}) []Mismatch {
 
 // Attempts to find and add a mismatch to the result slice.
 func processComparison(
-	a, b reflect.Value, fType string, res []Mismatch,
+	a, b *reflect.Value, fType string, res []Mismatch,
 ) []Mismatch {
 	mismatch := checkForMismatch(a, b, fType)
 
