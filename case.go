@@ -29,6 +29,6 @@ func (c *Case[I, O]) InputToString() string {
 // between actual and expected output.
 func (c *Case[I, O]) RunSolution(fName string, s func(I) O) Report[I, O] {
 	actual := s(*gd.DeepCopy(c.Input))
-	mismatches := findMismatches(actual, c.Expected)
+	mismatches := findMismatches(actual, *c.Expected)
 	return Report[I, O]{c, fName, mismatches}
 }
