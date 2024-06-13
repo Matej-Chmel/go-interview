@@ -71,7 +71,7 @@ func (s ReceiptSlice2) String() string {
 
 	for i := 0; i < last; i++ {
 		builder.WriteString(s.Receipts[i].String())
-		builder.WriteRune('\n')
+		builder.WriteString("\n\n")
 	}
 
 	builder.WriteString(s.Receipts[last].String())

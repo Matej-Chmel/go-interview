@@ -1,6 +1,7 @@
 package gointerview_test
 
 import (
+	"strings"
 	"testing"
 
 	goi "github.com/Matej-Chmel/go-interview"
@@ -161,5 +162,33 @@ func TestRunes(t *testing.T) {
 
 	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
 		ite.Throw(t, 1, "%s != Aello", a)
+	}
+}
+
+func solutionOne(i int) int {
+	return i
+}
+
+func solutionTwo(i int) int {
+	return i + 1
+}
+
+func TestWrite(t *testing.T) {
+	i := goi.NewInterview[int, int]()
+
+	i.AddCase(1, 2)
+	i.AddCase(65, 66)
+
+	i.AddSolutions(solutionOne, solutionTwo)
+
+	var builder strings.Builder
+	i.WriteAllSolutions(&builder)
+
+	actual := builder.String()
+	expected := ite.ReadFile("test_data/test_write.txt", t)
+
+	if actual != expected {
+		ite.Throw(t, 1, "\nActual:\n%s\n\nExpected:\n%s", actual, expected)
+		ite.Throw(t, 1, "Actual: %d, Expected: %d", len(actual), len(expected))
 	}
 }

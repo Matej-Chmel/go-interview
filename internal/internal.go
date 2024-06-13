@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
@@ -71,7 +72,7 @@ func (s ReceiptSlice) String() string {
 
 	for i := 0; i < last; i++ {
 		builder.WriteString(s.Receipts[i].String())
-		builder.WriteRune('\n')
+		builder.WriteString("\n\n")
 	}
 
 	builder.WriteString(s.Receipts[last].String())
@@ -102,6 +103,24 @@ func GetFunctionName(f interface{}) string {
 	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 	tokens := strings.Split(name, ".")
 	return tokens[len(tokens)-1]
+}
+
+func ReadFile(path string, t *testing.T) string {
+	file, err := os.Open(path)
+
+	if err != nil {
+		Throw(t, 1, "Failed to open file: %s", err)
+	}
+
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+
+	if err != nil {
+		Throw(t, 1, "Failed to read file: %s", err)
+	}
+
+	return strings.ReplaceAll(string(content), "\r\n", "\n")
 }
 
 func Throw(t *testing.T, skip int, format string, data ...any) {
