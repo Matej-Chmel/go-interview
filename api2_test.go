@@ -89,3 +89,61 @@ func TestWrite2(t *testing.T) {
 		ite.Throw(t, 1, "Actual: %d, Expected: %d", len(actual), len(expected))
 	}
 }
+
+func TestExported2(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			ite.Throw(t, 1, "TestExported2 did panic but should have NOT")
+		}
+	}()
+
+	i := goi.NewInterview2[ite.Exported, ite.Exported, ite.Exported]()
+	data := ite.Exported{A: 1, B: 2}
+	i.AddCase(data, data, data)
+}
+
+func TestExportedNested2(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			ite.Throw(t, 1, "TestExportedNested2 did panic but should have NOT")
+		}
+	}()
+
+	i := goi.NewInterview2[ite.ExportedNested, ite.ExportedNested, ite.ExportedNested]()
+	data := ite.ExportedNested{Exported: ite.Exported{A: 1, B: 2}, C: 3}
+	i.AddCase(data, data, data)
+}
+
+type Unexported2 struct {
+	a int
+	B int
+}
+
+func TestUnexported2(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			ite.Throw(t, 1, "TestUnexported2 did NOT panic")
+		}
+	}()
+
+	i := goi.NewInterview2[Unexported2, Unexported2, Unexported2]()
+	data := Unexported2{a: 1, B: 2}
+	i.AddCase(data, data, data)
+}
+
+type UnexportedNested2 struct {
+	U Unexported2
+	C int
+}
+
+func TestUnexportedNested2(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			ite.Throw(t, 1, "TestUnexportedNested2 did NOT panic")
+		}
+	}()
+
+	i := goi.NewInterview2[UnexportedNested2, UnexportedNested2, UnexportedNested2]()
+	data := UnexportedNested2{U: Unexported2{a: 1, B: 2}, C: 3}
+	i.AddCase(data, data, data)
+}

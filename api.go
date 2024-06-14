@@ -24,6 +24,16 @@ func NewInterview[I any, O any]() interview[I, O] {
 }
 
 func (i *interview[I, O]) AddCase(input I, expected O) {
+	if len(i.cases) == 0 {
+		if !dc.IsFullyExported(input) {
+			panic("Input struct CANNOT have unexported fields")
+		}
+
+		if !dc.IsFullyExported(expected) {
+			panic("Output struct CANNOT have unexported fields")
+		}
+	}
+
 	i.cases = append(i.cases, &ite.TestCase[I, O]{
 		Expected: dc.DeepCopy(&expected),
 		Input:    dc.DeepCopy(&input),
