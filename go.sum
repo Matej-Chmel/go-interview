@@ -1,6 +1,10 @@
-github.com/Matej-Chmel/go-any-to-string v1.0.2 h1:k8qs9pnVKltmRPKbEHLh77E+1jl/SeVmYyjupDGSyVU=
-github.com/Matej-Chmel/go-any-to-string v1.0.2/go.mod h1:154CPmDbFmc85BqLBWG/NKow0IzyCWU9bm7W1cqFGrM=
-github.com/Matej-Chmel/go-deep-copy v1.0.1 h1:XgrrNn2NeIY31R01qLpfeFYK721yQKDVvMGPz9vz+L4=
-github.com/Matej-Chmel/go-deep-copy v1.0.1/go.mod h1:H010XAg1D1TlJAQVuWnm7JUbyLLG2490nqizuCo0zAQ=
+github.com/Matej-Chmel/go-any-to-string v1.0.6 h1:6GdJmlWraC7ZrUYXb3d8ID4sc3QsHl74QKIanjit/sw=
+github.com/Matej-Chmel/go-any-to-string v1.0.6/go.mod h1:154CPmDbFmc85BqLBWG/NKow0IzyCWU9bm7W1cqFGrM=
+github.com/Matej-Chmel/go-deep-copy v1.0.2 h1:VNL1HGlXgvA4+WMDZc+DyI9uturcDOu0p3+c7FTwRx4=
+github.com/Matej-Chmel/go-deep-copy v1.0.2/go.mod h1:VfWYC8pcIA/zTJn8Fe+zlGqXQ1Nvy8qSYQCV3J0wvnw=
 github.com/Matej-Chmel/go-generic-stack v1.0.3 h1:AlpGSyUvbjxRmuVWFh8S7RZzoQiTJo2U6CMW2xDvAnc=
 github.com/Matej-Chmel/go-generic-stack v1.0.3/go.mod h1:bhv6WeqwCoR3lpWBatqph/PtZbfhDQdDpHslit0S7ec=
+github.com/Matej-Chmel/go-number-io v1.0.3 h1:9niCnqOtSLFPVjgwQltIKVXMgX46rxdaFsTpYk45tP4=
+github.com/Matej-Chmel/go-number-io v1.0.3/go.mod h1:ZbZ7l/j1sCQI1W8eBJMb4icEzr0xsDXZMvCTrAo99jU=
+golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 h1:yixxcjnhBmY0nkL253HFVIm0JsFHwrHdT3Yh6szTnfY=
+golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8/go.mod h1:jj3sYF3dwk5D+ghuXyeI3r5MFf+NT2An6/9dOA95KSI=

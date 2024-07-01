@@ -1,110 +1,95 @@
 package gointerview
 
 import (
-	"fmt"
 	"io"
-	"os"
-	"sort"
 
-	at "github.com/Matej-Chmel/go-any-to-string"
-	dc "github.com/Matej-Chmel/go-deep-copy"
 	ite "github.com/Matej-Chmel/go-interview/internal"
 )
 
-type interview[I any, O any] struct {
-	cases     []*ite.TestCase[I, O]
-	solutions map[string]func(I) O
+// Class for single input problems.
+// Delegates all implementation to Interview2
+// with a dummy type for the second input.
+type Interview[I any, O any] struct {
+	iv Interview2[I, int, O]
 }
 
-func NewInterview[I any, O any]() interview[I, O] {
-	return interview[I, O]{
-		cases:     make([]*ite.TestCase[I, O], 0),
-		solutions: make(map[string]func(I) O),
+// Constructs an Interview object
+func NewInterview[I any, O any]() Interview[I, O] {
+	return Interview[I, O]{
+		iv: newInterview2Impl[I, int, O](true),
 	}
 }
 
-func (i *interview[I, O]) AddCase(input I, expected O) {
-	if len(i.cases) == 0 {
-		if !dc.IsFullyExported(input) {
-			panic("Input struct CANNOT have unexported fields")
-		}
-
-		if !dc.IsFullyExported(expected) {
-			panic("Output struct CANNOT have unexported fields")
-		}
-	}
-
-	i.cases = append(i.cases, &ite.TestCase[I, O]{
-		Expected: dc.DeepCopy(&expected),
-		Input:    dc.DeepCopy(&input),
-	})
+// Adds one test case
+func (i *Interview[I, O]) AddCase(input I, expected O) {
+	i.iv.AddCase(input, 0, expected)
 }
 
-func (i *interview[I, O]) AddSolution(s func(I) O) {
-	i.solutions[ite.GetFunctionName(s)] = s
+// Adds multiple test cases
+func (i *Interview[I, O]) AddCases(input []I, expected []O) {
+	i.iv.AddCasesSlice(input, []int{}, expected, 0, -1)
 }
 
-func (i *interview[I, O]) AddSolutions(s ...func(I) O) {
+// Adds multiple test cases in range [begin, end)
+func (i *Interview[I, O]) AddCasesSlice(input []I, expected []O, begin, end int) {
+	i.iv.AddCasesSlice(input, []int{}, expected, begin, end)
+}
+
+// Adds one solution function
+func (i *Interview[I, O]) AddSolution(s func(I) O) {
+	i.iv.solutions1[ite.GetFunctionName(s)] = s
+}
+
+// Adds multiple solution functions
+func (i *Interview[I, O]) AddSolutions(s ...func(I) O) {
 	for _, f := range s {
 		i.AddSolution(f)
 	}
 }
 
-func (i *interview[I, O]) getReceipt(f func(I) O, name string) (r ite.Receipt, e error) {
-	r.Lines, e = i.runFunction(f)
-	r.Name = name
-	return
+// Runs all solutions against all test cases
+// and compiles the output into a single string
+func (i *Interview[I, O]) AllSolutionsToString() string {
+	return i.iv.AllSolutionsToString()
 }
 
-func (i *interview[I, O]) runFunction(f func(I) O) ([]ite.ReceiptLine, error) {
-	results := make([]ite.ReceiptLine, 0)
-
-	o := at.NewOptions()
-	o.ByteAsString = true
-	o.RuneAsString = true
-
-	for _, c := range i.cases {
-		input := dc.DeepCopy(c.Input)
-		actual := f(*input)
-		res := ite.ReceiptLine{
-			Actual:   at.AnyToStringCustom(actual, o),
-			Expected: at.AnyToStringCustom(*c.Expected, o),
-			Input:    at.AnyToStringCustom(*input, o),
-		}
-		results = append(results, res)
-	}
-
-	return results, nil
+// Runs all solutions against all test cases
+// and prints the output to the standard output
+func (i *Interview[I, O]) Print() error {
+	return i.iv.Print()
 }
 
-func (i *interview[I, O]) RunSolution(name string) (r ite.Receipt, e error) {
-	s, exists := i.solutions[name]
-
-	if !exists {
-		e = fmt.Errorf("solution %s not found", name)
-		return
-	}
-
-	return i.getReceipt(s, name)
+// Reads one case from relative paths for input and output
+func (i *Interview[I, O]) ReadCase(inputRelPath, expectedRelPath string) {
+	i.iv.ReadCase(inputRelPath, "", expectedRelPath)
 }
 
-func (i *interview[I, O]) RunAllSolutions() (s ite.ReceiptSlice) {
-	for name, f := range i.solutions {
-		receipt, _ := i.getReceipt(f, name)
-		s.Receipts = append(s.Receipts, receipt)
-	}
-
-	sort.Slice(s.Receipts, func(i, j int) bool {
-		return s.Receipts[i].Name < s.Receipts[j].Name
-	})
-	return
+// Reads multiple cases from relative paths for input and output
+func (i *Interview[I, O]) ReadCases(inputRelPath, expectedRelPath string) {
+	i.iv.ReadCases(inputRelPath, "", expectedRelPath)
 }
 
-func (i *interview[I, O]) Print() error {
-	return i.WriteAllSolutions(os.Stdout)
+// Reads multiple cases from relative paths for input and output.
+// Only the cases in range [begin, end) are added.
+func (i *Interview[I, O]) ReadCasesSlice(
+	inputRelPath, expectedRelPath string, begin, end int,
+) {
+	i.iv.ReadCasesSlice(inputRelPath, "", expectedRelPath, begin, end)
 }
 
-func (i *interview[I, O]) WriteAllSolutions(w io.Writer) error {
-	s := i.RunAllSolutions()
-	return s.Write(w)
+// Runs one solution function against all test cases.
+// If function cannot be found, an error is returned.
+func (i *Interview[I, O]) RunSolution(name string) (ite.Receipt, error) {
+	return i.iv.RunSolution(name)
+}
+
+// Runs all solutions against all test cases
+func (i *Interview[I, O]) RunAllSolutions() ite.ReceiptSlice {
+	return i.iv.RunAllSolutions()
+}
+
+// Runs all solutions against all test cases
+// and writes the results into a writer w
+func (i *Interview[I, O]) WriteAllSolutions(w io.Writer) error {
+	return i.iv.WriteAllSolutions(w)
 }

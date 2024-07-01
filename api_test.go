@@ -1,37 +1,12 @@
 package gointerview_test
 
 import (
-	"strings"
+	"sort"
 	"testing"
 
 	goi "github.com/Matej-Chmel/go-interview"
 	ite "github.com/Matej-Chmel/go-interview/internal"
 )
-
-func checkLines(actual, expected []ite.ReceiptLine, t *testing.T) {
-	if len(actual) != len(expected) {
-		ite.Throw(t, 2, "Expected %d lines, found %d", len(expected), len(actual))
-	}
-
-	for i := 0; i < len(expected); i++ {
-		if !actual[i].Equal(&expected[i]) {
-			a, e := actual[i].String(), expected[i].String()
-			ite.Throw(t, 2, "Lines at index %d do not equal\n%s\n%s", i, a, e)
-		}
-	}
-}
-
-func checkSlice(s *ite.ReceiptSlice, t *testing.T, solNames ...string) {
-	if len(s.Receipts) != len(solNames) {
-		ite.Throw(t, 2, "Expected %d, found %d solutions", len(s.Receipts), len(solNames))
-	}
-
-	for i := 0; i < len(solNames); i++ {
-		if a, e := s.Receipts[i].Name, solNames[i]; a != e {
-			ite.Throw(t, 2, "Name at index %d does not equal\n%s != %s", i, a, e)
-		}
-	}
-}
 
 func badFactorial(n int) (r int) {
 	for i := 1; i <= n; i++ {
@@ -72,36 +47,59 @@ func TestFactorial(t *testing.T) {
 	i.AddSolutions(badFactorial, loopFactorial, recursiveFactorial)
 
 	bad, err := i.RunSolution("badFactorial")
-	ite.CheckName(err, bad.Name, "badFactorial", t)
-	checkLines(bad.Lines, []ite.ReceiptLine{
-		ite.NewReceiptLine("0", "1", "0"),
+	success := ite.CheckName(err, bad.Name, "badFactorial", t)
+
+	if !success {
+		return
+	}
+
+	success = ite.CheckLines(bad.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "0", "1"),
 		ite.NewReceiptLine("1", "1", "1"),
-		ite.NewReceiptLine("3", "2", "2"),
-		ite.NewReceiptLine("6", "6", "3"),
-		ite.NewReceiptLine("10", "24", "4"),
-		ite.NewReceiptLine("15", "120", "5"),
+		ite.NewReceiptLine("2", "3", "2"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "10", "24"),
+		ite.NewReceiptLine("5", "15", "120"),
 	}, t)
+
+	if !success {
+		return
+	}
 
 	loop, err := i.RunSolution("loopFactorial")
-	ite.CheckName(err, loop.Name, "loopFactorial", t)
-	checkLines(loop.Lines, []ite.ReceiptLine{
-		ite.NewReceiptLine("1", "1", "0"),
+	success = ite.CheckName(err, loop.Name, "loopFactorial", t)
+
+	if !success {
+		return
+	}
+
+	success = ite.CheckLines(loop.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "1", "1"),
 		ite.NewReceiptLine("1", "1", "1"),
 		ite.NewReceiptLine("2", "2", "2"),
-		ite.NewReceiptLine("6", "6", "3"),
-		ite.NewReceiptLine("24", "24", "4"),
-		ite.NewReceiptLine("120", "120", "5"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "24", "24"),
+		ite.NewReceiptLine("5", "120", "120"),
 	}, t)
 
+	if !success {
+		return
+	}
+
 	rec, err := i.RunSolution("recursiveFactorial")
-	ite.CheckName(err, rec.Name, "recursiveFactorial", t)
-	checkLines(rec.Lines, []ite.ReceiptLine{
-		ite.NewReceiptLine("1", "1", "0"),
+	success = ite.CheckName(err, rec.Name, "recursiveFactorial", t)
+
+	if !success {
+		return
+	}
+
+	ite.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "1", "1"),
 		ite.NewReceiptLine("1", "1", "1"),
 		ite.NewReceiptLine("2", "2", "2"),
-		ite.NewReceiptLine("6", "6", "3"),
-		ite.NewReceiptLine("24", "24", "4"),
-		ite.NewReceiptLine("120", "120", "5"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "24", "24"),
+		ite.NewReceiptLine("5", "120", "120"),
 	}, t)
 }
 
@@ -127,12 +125,18 @@ func TestBytes(t *testing.T) {
 
 	if data != "hello" {
 		ite.Throw(t, 1, "Input changed from hello to %s", data)
+		return
 	}
 
-	checkSlice(&s, t, "bytes")
+	success := ite.CheckSlice(&s, t, "bytes")
+
+	if !success {
+		return
+	}
 
 	if d := len(s.Receipts[0].Lines); d != 1 {
 		ite.Throw(t, 1, "Number of lines: %d", d)
+		return
 	}
 
 	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
@@ -152,12 +156,18 @@ func TestRunes(t *testing.T) {
 
 	if data != "hello" {
 		ite.Throw(t, 1, "Input changed from hello to %s", data)
+		return
 	}
 
-	checkSlice(&s, t, "runes")
+	success := ite.CheckSlice(&s, t, "runes")
+
+	if !success {
+		return
+	}
 
 	if d := len(s.Receipts[0].Lines); d != 1 {
 		ite.Throw(t, 1, "Number of lines: %d", d)
+		return
 	}
 
 	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
@@ -165,31 +175,24 @@ func TestRunes(t *testing.T) {
 	}
 }
 
-func solutionOne(i int) int {
+func noInc(i int) int {
 	return i
 }
 
-func solutionTwo(i int) int {
+func inc(i int) int {
 	return i + 1
 }
 
-func TestWrite(t *testing.T) {
+func TestStdout(t *testing.T) {
 	i := goi.NewInterview[int, int]()
-
 	i.AddCase(1, 2)
 	i.AddCase(65, 66)
+	i.AddSolutions(noInc, inc)
 
-	i.AddSolutions(solutionOne, solutionTwo)
-
-	var builder strings.Builder
-	i.WriteAllSolutions(&builder)
-
-	actual := builder.String()
-	expected := ite.ReadFile("test_data/test_write.txt", t)
-
-	if actual != expected {
-		ite.Throw(t, 1, "\nActual:\n%s\n\nExpected:\n%s", actual, expected)
-		ite.Throw(t, 1, "Actual: %d, Expected: %d", len(actual), len(expected))
+	if expected, err := ite.ReadAllText("test_data/inc_stdout.txt"); err != nil {
+		ite.Throw(t, 1, err.Error())
+	} else {
+		ite.CheckStrings(t, 1, i.AllSolutionsToString(), expected)
 	}
 }
 
@@ -249,4 +252,62 @@ func TestUnexportedNested(t *testing.T) {
 	i := goi.NewInterview[UnexportedNested, UnexportedNested]()
 	data := UnexportedNested{U: Unexported{a: 1, B: 2}, C: 3}
 	i.AddCase(data, data)
+}
+
+func badSort(nums []int) []int {
+	sort.Slice(nums, func(i, j int) bool {
+		return nums[i] < nums[j]
+	})
+	nums[0] = 0
+	return nums
+}
+
+func TestSort1D(t *testing.T) {
+	i := goi.NewInterview[[]int, []int]()
+	i.AddSolution(badSort)
+	i.ReadCases("test_data/sort_in.txt", "test_data/sort_out.txt")
+
+	rec, err := i.RunSolution("badSort")
+	success := ite.CheckName(err, rec.Name, "badSort", t)
+
+	if !success {
+		return
+	}
+
+	success = ite.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("[1 3 5 7 9]", "[0 3 5 7 9]", "[1 3 5 7 9]"),
+		ite.NewReceiptLine("[9 0 7 8 9]", "[0 7 8 9 9]", "[0 7 8 9 9]"),
+		ite.NewReceiptLine("[3 3 3 2 2]", "[0 2 3 3 3]", "[2 2 3 3 3]"),
+		ite.NewReceiptLine("[0 0 2 -1 -3 -2]", "[0 -2 -1 0 0 2]", "[-3 -2 -1 0 0 2]"),
+		ite.NewReceiptLine("[51236 3237 908 -90000 90100]", "[0 908 3237 51236 90100]", "[-90000 908 3237 51236 90100]"),
+	}, t)
+
+	if !success {
+		return
+	}
+}
+
+func incMatrix(a [][]int) [][]int {
+	for i := 0; i < len(a); i++ {
+		for j := 0; j < len(a[i]); j++ {
+			a[i][j]++
+
+			if j >= 3 {
+				a[i][j]++
+			}
+		}
+	}
+	return a
+}
+
+func TestIncMatrix(t *testing.T) {
+	i := goi.NewInterview[[][]int, [][]int]()
+	i.AddSolution(incMatrix)
+	i.ReadCases("test_data/incMatrix_in.txt", "test_data/incMatrix_out.txt")
+
+	if expected, err := ite.ReadAllText("test_data/incMatrix_stdout.txt"); err != nil {
+		ite.Throw(t, 1, err.Error())
+	} else {
+		ite.CheckStrings(t, 1, i.AllSolutionsToString(), expected)
+	}
 }
