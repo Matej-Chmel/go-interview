@@ -115,6 +115,7 @@ func runes(s []rune) []rune {
 
 func TestBytes(t *testing.T) {
 	i := goi.NewInterview[[]byte, []byte]()
+	i.BytesAsString()
 	input := []byte("hello")
 
 	i.AddCase(input, []byte("Aello"))
@@ -146,6 +147,7 @@ func TestBytes(t *testing.T) {
 
 func TestRunes(t *testing.T) {
 	i := goi.NewInterview[[]rune, []rune]()
+	i.BytesAsString()
 	input := []rune("hello")
 
 	i.AddCase(input, []rune("Aello"))
@@ -287,7 +289,7 @@ func TestSort1D(t *testing.T) {
 	}
 }
 
-func incMatrix(a [][]int) [][]int {
+func incMatrix(a [][]int32) [][]int32 {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(a[i]); j++ {
 			a[i][j]++
@@ -301,7 +303,7 @@ func incMatrix(a [][]int) [][]int {
 }
 
 func TestIncMatrix(t *testing.T) {
-	i := goi.NewInterview[[][]int, [][]int]()
+	i := goi.NewInterview[[][]int32, [][]int32]()
 	i.AddSolution(incMatrix)
 	i.ReadCases("test_data/incMatrix_in.txt", "test_data/incMatrix_out.txt")
 

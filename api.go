@@ -53,6 +53,12 @@ func (i *Interview[I, O]) AllSolutionsToString() string {
 	return i.iv.AllSolutionsToString()
 }
 
+// Changes options so that byte, uint8, rune and int32 are all
+// printed as characters
+func (i *Interview[I, O]) BytesAsString() {
+	i.iv.BytesAsString()
+}
+
 // Runs all solutions against all test cases
 // and prints the output to the standard output
 func (i *Interview[I, O]) Print() error {

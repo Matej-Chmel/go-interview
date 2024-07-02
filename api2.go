@@ -33,7 +33,7 @@ func newInterview2Impl[I any, I2 any, O any](isSingleInput bool) Interview2[I, I
 	res := Interview2[I, I2, O]{
 		cases:         make([]*ite.TestCase[I, I2, O], 0),
 		isSingleInput: isSingleInput,
-		options:       ite.GetOptions(),
+		options:       at.NewOptions(),
 		solutions1:    nil,
 		solutions2:    nil,
 	}
@@ -129,6 +129,13 @@ func (i *Interview2[I, I2, O]) AllSolutionsToString() string {
 	var builder strings.Builder
 	i.WriteAllSolutions(&builder)
 	return builder.String()
+}
+
+// Changes options so that byte, uint8, rune and int32 are all
+// printed as characters
+func (i *Interview2[I, I2, O]) BytesAsString() {
+	i.options.ByteAsString = true
+	i.options.RuneAsString = true
 }
 
 // Internal constructor for a new ReceiptLine
