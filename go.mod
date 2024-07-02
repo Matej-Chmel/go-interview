@@ -4,7 +4,7 @@ go 1.22.3
 
 require github.com/Matej-Chmel/go-deep-copy v1.0.2
 
-require github.com/Matej-Chmel/go-number-io v1.0.3
+require github.com/Matej-Chmel/go-number-io v1.0.4
 
 require (
 	github.com/Matej-Chmel/go-any-to-string v1.0.6
