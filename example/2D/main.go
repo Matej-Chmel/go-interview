@@ -27,11 +27,11 @@ func matrixMult(a, b [][]int8) [][]int8 {
 }
 
 func main() {
-	i := goi.NewInterview2[[][]int8, [][]int8, [][]int8]()
-	i.AddSolution(matrixMult)
-	i.ReadCases(
+	iv := goi.NewInterview2[[][]int8, [][]int8, [][]int8]()
+	iv.AddSolution(matrixMult)
+	iv.ReadCases(
 		"test_data/matrixMult_in.txt",
 		"test_data/matrixMult_in2.txt",
 		"test_data/matrixMult_out.txt")
-	i.Print()
+	iv.Print()
 }

@@ -4,6 +4,31 @@ import (
 	"strings"
 )
 
+// Output information for all test cases under one solution name
+type Receipt struct {
+	Lines []*ReceiptLine
+	Name  string
+}
+
+// Writes itself to builder
+// Each multi-line test case is separated by double newline
+func (s *Receipt) ContinueBuild(builder *strings.Builder) {
+	builder.WriteString(s.Name)
+	builder.WriteRune('\n')
+	builder.WriteString(strings.Repeat("=", len(s.Name)))
+	isMultiLine := false
+
+	for _, l := range s.Lines {
+		builder.WriteRune('\n')
+
+		if isMultiLine {
+			builder.WriteRune('\n')
+		}
+
+		isMultiLine = l.ContinueBuild(builder)
+	}
+}
+
 // Output information about a single test case
 type ReceiptLine struct {
 	Actual   string
@@ -57,31 +82,6 @@ func (r ReceiptLine) String() string {
 	return builder.String()
 }
 
-// Output information for all test cases under one solution name
-type Receipt struct {
-	Lines []*ReceiptLine
-	Name  string
-}
-
-// Writes itself to builder
-// Each multi-line test case is separated by double newline
-func (s *Receipt) ContinueBuild(builder *strings.Builder) {
-	builder.WriteString(s.Name)
-	builder.WriteRune('\n')
-	builder.WriteString(strings.Repeat("=", len(s.Name)))
-	isMultiLine := false
-
-	for _, l := range s.Lines {
-		builder.WriteRune('\n')
-
-		if isMultiLine {
-			builder.WriteRune('\n')
-		}
-
-		isMultiLine = l.ContinueBuild(builder)
-	}
-}
-
 // Slice of Receipts
 type ReceiptSlice struct {
 	Receipts []Receipt
@@ -97,4 +97,16 @@ func (s *ReceiptSlice) ContinueBuild(builder *strings.Builder) {
 	}
 
 	s.Receipts[last].ContinueBuild(builder)
+}
+
+func (r *ReceiptSlice) Len() int {
+	return len(r.Receipts)
+}
+
+func (r *ReceiptSlice) Less(i, j int) bool {
+	return r.Receipts[i].Name <= r.Receipts[j].Name
+}
+
+func (r *ReceiptSlice) Swap(i, j int) {
+	r.Receipts[i], r.Receipts[j] = r.Receipts[j], r.Receipts[i]
 }

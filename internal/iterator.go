@@ -15,9 +15,9 @@ type LineIterator struct {
 
 // Calculates the first line that is not empty from mh,
 // maximum height of all iterators.
-func (i *LineIterator) calculateSkip(mh int) {
-	i.startAt = (mh - i.height) / 2
-	i.skipString = strings.Repeat(" ", i.width)
+func (iv *LineIterator) calculateSkip(mh int) {
+	iv.startAt = (mh - iv.height) / 2
+	iv.skipString = strings.Repeat(" ", iv.width)
 }
 
 // Returns maximum width from lines.

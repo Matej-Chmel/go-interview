@@ -15,27 +15,45 @@ import (
 // Class for two input problems.
 // It can act as an implementation for Interview class.
 type Interview2[I any, I2 any, O any] struct {
+	*ite.EmbeddedOptions
+	byteFlags     uint
 	cases         []*ite.TestCase[I, I2, O]
 	isSingleInput bool
-	options       *at.Options
 	solutions1    map[string]func(I) O
 	solutions2    map[string]func(I, I2) O
 }
 
 // Constructs an Interview2 object
 func NewInterview2[I any, I2 any, O any]() Interview2[I, I2, O] {
-	return newInterview2Impl[I, I2, O](false)
+	options := ite.NewEmbeddedOptions()
+	return newInterview2Impl[I, I2, O](false, &options)
 }
 
 // Internal constructor for Interview2 object.
 // Decides which solution map to initialize.
-func newInterview2Impl[I any, I2 any, O any](isSingleInput bool) Interview2[I, I2, O] {
+func newInterview2Impl[I any, I2 any, O any](
+	isSingleInput bool,
+	options *ite.EmbeddedOptions,
+) Interview2[I, I2, O] {
 	res := Interview2[I, I2, O]{
-		cases:         make([]*ite.TestCase[I, I2, O], 0),
-		isSingleInput: isSingleInput,
-		options:       at.NewOptions(),
-		solutions1:    nil,
-		solutions2:    nil,
+		byteFlags:       0,
+		cases:           make([]*ite.TestCase[I, I2, O], 0),
+		EmbeddedOptions: options,
+		isSingleInput:   isSingleInput,
+		solutions1:      nil,
+		solutions2:      nil,
+	}
+
+	if ite.IsByte[I]() {
+		res.byteFlags |= ite.Input1Byte
+	}
+
+	if ite.IsByte[I2]() {
+		res.byteFlags |= ite.Input2Byte
+	}
+
+	if ite.IsByte[O]() {
+		res.byteFlags |= ite.OutputByte
 	}
 
 	if isSingleInput {
@@ -48,23 +66,27 @@ func newInterview2Impl[I any, I2 any, O any](isSingleInput bool) Interview2[I, I
 }
 
 // Adds one test case
-func (i *Interview2[I, I2, O]) AddCase(input I, input2 I2, expected O) {
-	if len(i.cases) == 0 {
-		if !dc.IsFullyExported(input) {
-			panic("First input struct CANNOT have unexported fields")
-		}
+func (iv *Interview2[I, I2, O]) AddCase(input I, input2 I2, expected O) {
+	testCase := ite.NewTestCase(&input, &input2, &expected, iv.isSingleInput)
+	iv.cases = append(iv.cases, testCase)
+}
 
-		if !dc.IsFullyExported(input2) {
-			panic("Second input struct CANNOT have unexported fields")
-		}
+// Converts strings to a byte or rune slices and attempts
+// to add those slices as a new test case.
+// Panics if any string cannot be converted to its target type.
+func (iv *Interview2[I, I2, O]) AddCaseString(
+	s1 string, s2 string, exp string,
+) {
+	input := ite.ConvertToSlice[I](s1, iv.byteFlags, ite.Input1Byte)
+	expected := ite.ConvertToSlice[O](exp, iv.byteFlags, ite.OutputByte)
 
-		if !dc.IsFullyExported(expected) {
-			panic("Output struct CANNOT have unexported fields")
-		}
+	var input2 I2
+
+	if !iv.isSingleInput {
+		input2 = ite.ConvertToSlice[I2](s2, iv.byteFlags, ite.Input2Byte)
 	}
 
-	i.cases = append(
-		i.cases, ite.NewTestCase(&input, &input2, &expected, i.isSingleInput))
+	iv.AddCase(input, input2, expected)
 }
 
 // Adds multiple test cases
@@ -112,59 +134,64 @@ func (iv *Interview2[I, I2, O]) AddCasesSlice(
 }
 
 // Adds one solution function
-func (i *Interview2[I, I2, O]) AddSolution(s func(I, I2) O) {
-	i.solutions2[ite.GetFunctionName(s)] = s
+func (iv *Interview2[I, I2, O]) AddSolution(s func(I, I2) O) {
+	iv.solutions2[ite.GetFunctionName(s)] = s
 }
 
 // Adds multiple solution functions
-func (i *Interview2[I, I2, O]) AddSolutions(s ...func(I, I2) O) {
+func (iv *Interview2[I, I2, O]) AddSolutions(s ...func(I, I2) O) {
 	for _, f := range s {
-		i.AddSolution(f)
+		iv.AddSolution(f)
 	}
 }
 
 // Runs all solutions against all test cases
 // and compiles the output into a single string
-func (i *Interview2[I, I2, O]) AllSolutionsToString() string {
+func (iv *Interview2[I, I2, O]) AllSolutionsToString() string {
 	var builder strings.Builder
-	i.WriteAllSolutions(&builder)
+	iv.WriteAllSolutions(&builder)
 	return builder.String()
 }
 
-// Changes options so that byte, uint8, rune and int32 are all
-// printed as characters
-func (i *Interview2[I, I2, O]) BytesAsString() {
-	i.options.ByteAsString = true
-	i.options.RuneAsString = true
+// Returns true if no test cases are available
+func (iv *Interview2[I, I2, O]) noCases() bool {
+	return len(iv.cases) == 0
+}
+
+// Returns true if no solutions are available
+func (iv *Interview2[I, I2, O]) noSolutions() bool {
+	return (iv.isSingleInput && len(iv.solutions1) == 0) ||
+		(!iv.isSingleInput && len(iv.solutions2) == 0)
 }
 
 // Internal constructor for a new ReceiptLine
-func (i *Interview2[I, I2, O]) newReceiptLine(
+func (iv *Interview2[I, I2, O]) newReceiptLine(
 	actual O, c *ite.TestCase[I, I2, O],
 ) *ite.ReceiptLine {
 	var input2 *string = nil
+	options := iv.GetOptions()
 
-	if !i.isSingleInput {
-		val := c.GetInput2String(i.options)
+	if !iv.isSingleInput {
+		val := c.GetInput2String(options)
 		input2 = &val
 	}
 
 	return ite.NewReceiptLineImpl(
-		at.AnyToStringCustom(actual, i.options),
-		c.GetExpectedString(i.options),
-		c.GetInputString(i.options),
+		at.AnyToStringCustom(actual, options),
+		c.GetExpectedString(options),
+		c.GetInputString(options),
 		input2,
 	)
 }
 
 // Runs all solutions against all test cases
 // and prints the output to the standard output
-func (i *Interview2[I, I2, O]) Print() error {
-	return i.WriteAllSolutions(os.Stdout)
+func (iv *Interview2[I, I2, O]) Print() error {
+	return iv.WriteAllSolutions(os.Stdout)
 }
 
 // Reads one case from relative paths for inputs and output
-func (i *Interview2[I, I2, O]) ReadCase(
+func (iv *Interview2[I, I2, O]) ReadCase(
 	input1RelPath, input2RelPath, outRelPath string,
 ) {
 	input1, err := ite.ReadData[I](input1RelPath)
@@ -175,7 +202,7 @@ func (i *Interview2[I, I2, O]) ReadCase(
 
 	var input2 I2
 
-	if !i.isSingleInput {
+	if !iv.isSingleInput {
 		val, err := ite.ReadData[I2](input2RelPath)
 
 		if err != nil {
@@ -191,20 +218,20 @@ func (i *Interview2[I, I2, O]) ReadCase(
 		panic(err)
 	}
 
-	i.AddCase(input1, input2, out)
+	iv.AddCase(input1, input2, out)
 }
 
 // Reads multiple cases from relative paths for inputs and output
-func (i *Interview2[I, I2, O]) ReadCases(
+func (iv *Interview2[I, I2, O]) ReadCases(
 	input1RelPath, input2RelPath, outRelPath string,
 ) {
-	i.ReadCasesSlice(
+	iv.ReadCasesSlice(
 		input1RelPath, input2RelPath, outRelPath, 0, -1)
 }
 
 // Reads multiple cases from relative paths for inputs and output.
 // Only the cases in range [begin, end) are added.
-func (i *Interview2[I, I2, O]) ReadCasesSlice(
+func (iv *Interview2[I, I2, O]) ReadCasesSlice(
 	input1RelPath, input2RelPath, outRelPath string,
 	begin, end int,
 ) {
@@ -216,7 +243,7 @@ func (i *Interview2[I, I2, O]) ReadCasesSlice(
 
 	var input2 []I2
 
-	if !i.isSingleInput {
+	if !iv.isSingleInput {
 		val, err := ite.ReadData[[]I2](input2RelPath)
 
 		if err != nil {
@@ -232,16 +259,18 @@ func (i *Interview2[I, I2, O]) ReadCasesSlice(
 		panic(err)
 	}
 
-	i.AddCasesSlice(input1, input2, out, begin, end)
+	iv.AddCasesSlice(input1, input2, out, begin, end)
 }
 
 // Runs a solution for a single input problem
 // against all test cases
-func (i *Interview2[I, I2, O]) runFunction1(f func(I) O) (r ite.Receipt) {
-	for _, c := range i.cases {
+func (iv *Interview2[I, I2, O]) runFunction1(f func(I) O) (r ite.Receipt) {
+	r.Lines = make([]*ite.ReceiptLine, len(iv.cases))
+
+	for i, c := range iv.cases {
 		input := dc.DeepCopy(c.Input)
 		actual := f(*input)
-		r.Lines = append(r.Lines, i.newReceiptLine(actual, c))
+		r.Lines[i] = iv.newReceiptLine(actual, c)
 	}
 
 	r.Name = ite.GetFunctionName(f)
@@ -250,11 +279,13 @@ func (i *Interview2[I, I2, O]) runFunction1(f func(I) O) (r ite.Receipt) {
 
 // Runs a solution for a two input problem
 // against all test cases
-func (i *Interview2[I, I2, O]) runFunction2(f func(I, I2) O) (r ite.Receipt) {
-	for _, c := range i.cases {
+func (iv *Interview2[I, I2, O]) runFunction2(f func(I, I2) O) (r ite.Receipt) {
+	r.Lines = make([]*ite.ReceiptLine, len(iv.cases))
+
+	for i, c := range iv.cases {
 		input, input2 := dc.DeepCopy(c.Input), dc.DeepCopy(c.Input2)
 		actual := f(*input, *input2)
-		r.Lines = append(r.Lines, i.newReceiptLine(actual, c))
+		r.Lines[i] = iv.newReceiptLine(actual, c)
 	}
 
 	r.Name = ite.GetFunctionName(f)
@@ -263,15 +294,15 @@ func (i *Interview2[I, I2, O]) runFunction2(f func(I, I2) O) (r ite.Receipt) {
 
 // Runs one solution function against all test cases.
 // If function cannot be found, an error is returned.
-func (i *Interview2[I, I2, O]) RunSolution(name string) (ite.Receipt, error) {
+func (iv *Interview2[I, I2, O]) RunSolution(name string) (ite.Receipt, error) {
 	var exists bool
 	var fn1 func(I) O
 	var fn2 func(I, I2) O
 
-	if i.isSingleInput {
-		fn1, exists = i.solutions1[name]
+	if iv.isSingleInput {
+		fn1, exists = iv.solutions1[name]
 	} else {
-		fn2, exists = i.solutions2[name]
+		fn2, exists = iv.solutions2[name]
 	}
 
 	if !exists {
@@ -279,41 +310,52 @@ func (i *Interview2[I, I2, O]) RunSolution(name string) (ite.Receipt, error) {
 		return res, fmt.Errorf("solution %s not found", name)
 	}
 
-	if i.isSingleInput {
-		return i.runFunction1(fn1), nil
+	if iv.isSingleInput {
+		return iv.runFunction1(fn1), nil
 	}
 
-	return i.runFunction2(fn2), nil
+	return iv.runFunction2(fn2), nil
 }
 
 // Runs all solutions against all test cases
-func (i *Interview2[I, I2, O]) RunAllSolutions() (s ite.ReceiptSlice) {
-	if i.isSingleInput {
-		for _, f := range i.solutions1 {
-			receipt := i.runFunction1(f)
-			s.Receipts = append(s.Receipts, receipt)
+func (iv *Interview2[I, I2, O]) RunAllSolutions() (s ite.ReceiptSlice) {
+	i := 0
+
+	if iv.isSingleInput {
+		s.Receipts = make([]ite.Receipt, len(iv.solutions1))
+
+		for _, f := range iv.solutions1 {
+			s.Receipts[i] = iv.runFunction1(f)
+			i++
 		}
 	} else {
-		for _, f := range i.solutions2 {
-			receipt := i.runFunction2(f)
-			s.Receipts = append(s.Receipts, receipt)
+		s.Receipts = make([]ite.Receipt, len(iv.solutions2))
+
+		for _, f := range iv.solutions2 {
+			s.Receipts[i] = iv.runFunction2(f)
+			i++
 		}
 	}
 
-	sort.Slice(s.Receipts, func(i, j int) bool {
-		return s.Receipts[i].Name < s.Receipts[j].Name
-	})
+	sort.Sort(&s)
 	return
 }
 
 // Runs all solutions against all test cases
 // and writes the results into a writer w
-func (i *Interview2[I, I2, O]) WriteAllSolutions(w io.Writer) error {
-	var builder strings.Builder
+func (iv *Interview2[I, I2, O]) WriteAllSolutions(w io.Writer) error {
+	var err error
 
-	s := i.RunAllSolutions()
-	s.ContinueBuild(&builder)
-	_, err := w.Write([]byte(builder.String()))
+	if iv.noCases() {
+		_, err = w.Write([]byte("No test cases provided by the user!"))
+	} else if iv.noSolutions() {
+		_, err = w.Write([]byte("No solution functions provided by the user!"))
+	} else {
+		var builder strings.Builder
+		slice := iv.RunAllSolutions()
+		slice.ContinueBuild(&builder)
+		_, err = w.Write([]byte(builder.String()))
+	}
 
 	return err
 }

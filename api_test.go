@@ -8,252 +8,22 @@ import (
 	ite "github.com/Matej-Chmel/go-interview/internal"
 )
 
+type unexported struct {
+	a int
+	B int
+}
+
+type unexportedNested struct {
+	unexported
+	C int
+}
+
 func badFactorial(n int) (r int) {
 	for i := 1; i <= n; i++ {
 		r += i
 	}
 
 	return
-}
-
-func loopFactorial(n int) (r int) {
-	r = 1
-
-	for i := 1; i <= n; i++ {
-		r *= i
-	}
-
-	return
-}
-
-func recursiveFactorial(n int) int {
-	if n <= 1 {
-		return 1
-	}
-
-	return n * recursiveFactorial(n-1)
-}
-
-func TestFactorial(t *testing.T) {
-	i := goi.NewInterview[int, int]()
-
-	i.AddCase(0, 1)
-	i.AddCase(1, 1)
-	i.AddCase(2, 2)
-	i.AddCase(3, 6)
-	i.AddCase(4, 24)
-	i.AddCase(5, 120)
-
-	i.AddSolutions(badFactorial, loopFactorial, recursiveFactorial)
-
-	bad, err := i.RunSolution("badFactorial")
-	success := ite.CheckName(err, bad.Name, "badFactorial", t)
-
-	if !success {
-		return
-	}
-
-	success = ite.CheckLines(bad.Lines, []*ite.ReceiptLine{
-		ite.NewReceiptLine("0", "0", "1"),
-		ite.NewReceiptLine("1", "1", "1"),
-		ite.NewReceiptLine("2", "3", "2"),
-		ite.NewReceiptLine("3", "6", "6"),
-		ite.NewReceiptLine("4", "10", "24"),
-		ite.NewReceiptLine("5", "15", "120"),
-	}, t)
-
-	if !success {
-		return
-	}
-
-	loop, err := i.RunSolution("loopFactorial")
-	success = ite.CheckName(err, loop.Name, "loopFactorial", t)
-
-	if !success {
-		return
-	}
-
-	success = ite.CheckLines(loop.Lines, []*ite.ReceiptLine{
-		ite.NewReceiptLine("0", "1", "1"),
-		ite.NewReceiptLine("1", "1", "1"),
-		ite.NewReceiptLine("2", "2", "2"),
-		ite.NewReceiptLine("3", "6", "6"),
-		ite.NewReceiptLine("4", "24", "24"),
-		ite.NewReceiptLine("5", "120", "120"),
-	}, t)
-
-	if !success {
-		return
-	}
-
-	rec, err := i.RunSolution("recursiveFactorial")
-	success = ite.CheckName(err, rec.Name, "recursiveFactorial", t)
-
-	if !success {
-		return
-	}
-
-	ite.CheckLines(rec.Lines, []*ite.ReceiptLine{
-		ite.NewReceiptLine("0", "1", "1"),
-		ite.NewReceiptLine("1", "1", "1"),
-		ite.NewReceiptLine("2", "2", "2"),
-		ite.NewReceiptLine("3", "6", "6"),
-		ite.NewReceiptLine("4", "24", "24"),
-		ite.NewReceiptLine("5", "120", "120"),
-	}, t)
-}
-
-func bytes(s []byte) []byte {
-	s[0] = 65
-	return s
-}
-
-func runes(s []rune) []rune {
-	s[0] = 'A'
-	return s
-}
-
-func TestBytes(t *testing.T) {
-	i := goi.NewInterview[[]byte, []byte]()
-	i.BytesAsString()
-	input := []byte("hello")
-
-	i.AddCase(input, []byte("Aello"))
-	i.AddSolution(bytes)
-
-	s := i.RunAllSolutions()
-	data := string(input)
-
-	if data != "hello" {
-		ite.Throw(t, 1, "Input changed from hello to %s", data)
-		return
-	}
-
-	success := ite.CheckSlice(&s, t, "bytes")
-
-	if !success {
-		return
-	}
-
-	if d := len(s.Receipts[0].Lines); d != 1 {
-		ite.Throw(t, 1, "Number of lines: %d", d)
-		return
-	}
-
-	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
-		ite.Throw(t, 1, "%s != Aello", a)
-	}
-}
-
-func TestRunes(t *testing.T) {
-	i := goi.NewInterview[[]rune, []rune]()
-	i.BytesAsString()
-	input := []rune("hello")
-
-	i.AddCase(input, []rune("Aello"))
-	i.AddSolution(runes)
-
-	s := i.RunAllSolutions()
-	data := string(input)
-
-	if data != "hello" {
-		ite.Throw(t, 1, "Input changed from hello to %s", data)
-		return
-	}
-
-	success := ite.CheckSlice(&s, t, "runes")
-
-	if !success {
-		return
-	}
-
-	if d := len(s.Receipts[0].Lines); d != 1 {
-		ite.Throw(t, 1, "Number of lines: %d", d)
-		return
-	}
-
-	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
-		ite.Throw(t, 1, "%s != Aello", a)
-	}
-}
-
-func noInc(i int) int {
-	return i
-}
-
-func inc(i int) int {
-	return i + 1
-}
-
-func TestStdout(t *testing.T) {
-	i := goi.NewInterview[int, int]()
-	i.AddCase(1, 2)
-	i.AddCase(65, 66)
-	i.AddSolutions(noInc, inc)
-
-	if expected, err := ite.ReadAllText("test_data/inc_stdout.txt"); err != nil {
-		ite.Throw(t, 1, err.Error())
-	} else {
-		ite.CheckStrings(t, 1, i.AllSolutionsToString(), expected)
-	}
-}
-
-func TestExported(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			ite.Throw(t, 1, "TestExported did panic but should have NOT")
-		}
-	}()
-
-	i := goi.NewInterview[ite.Exported, ite.Exported]()
-	data := ite.Exported{A: 1, B: 2}
-	i.AddCase(data, data)
-}
-
-func TestExportedNested(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			ite.Throw(t, 1, "TestExportedNested did panic but should have NOT")
-		}
-	}()
-
-	i := goi.NewInterview[ite.ExportedNested, ite.ExportedNested]()
-	data := ite.ExportedNested{Exported: ite.Exported{A: 1, B: 2}, C: 3}
-	i.AddCase(data, data)
-}
-
-type Unexported struct {
-	a int
-	B int
-}
-
-func TestUnexported(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			ite.Throw(t, 1, "TestUnexported did NOT panic")
-		}
-	}()
-
-	i := goi.NewInterview[Unexported, Unexported]()
-	data := Unexported{a: 1, B: 2}
-	i.AddCase(data, data)
-}
-
-type UnexportedNested struct {
-	U Unexported
-	C int
-}
-
-func TestUnexportedNested(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			ite.Throw(t, 1, "TestUnexportedNested did NOT panic")
-		}
-	}()
-
-	i := goi.NewInterview[UnexportedNested, UnexportedNested]()
-	data := UnexportedNested{U: Unexported{a: 1, B: 2}, C: 3}
-	i.AddCase(data, data)
 }
 
 func badSort(nums []int) []int {
@@ -264,29 +34,24 @@ func badSort(nums []int) []int {
 	return nums
 }
 
-func TestSort1D(t *testing.T) {
-	i := goi.NewInterview[[]int, []int]()
-	i.AddSolution(badSort)
-	i.ReadCases("test_data/sort_in.txt", "test_data/sort_out.txt")
+func bytes(s []byte) []byte {
+	s[0] = 65
+	return s
+}
 
-	rec, err := i.RunSolution("badSort")
-	success := ite.CheckName(err, rec.Name, "badSort", t)
-
-	if !success {
-		return
+func exportedNestedSolution(e ite.ExportedNested) ite.ExportedNested {
+	return ite.ExportedNested{
+		Exported: ite.Exported{A: e.A + 1, B: e.B + 2},
+		C:        100,
 	}
+}
 
-	success = ite.CheckLines(rec.Lines, []*ite.ReceiptLine{
-		ite.NewReceiptLine("[1 3 5 7 9]", "[0 3 5 7 9]", "[1 3 5 7 9]"),
-		ite.NewReceiptLine("[9 0 7 8 9]", "[0 7 8 9 9]", "[0 7 8 9 9]"),
-		ite.NewReceiptLine("[3 3 3 2 2]", "[0 2 3 3 3]", "[2 2 3 3 3]"),
-		ite.NewReceiptLine("[0 0 2 -1 -3 -2]", "[0 -2 -1 0 0 2]", "[-3 -2 -1 0 0 2]"),
-		ite.NewReceiptLine("[51236 3237 908 -90000 90100]", "[0 908 3237 51236 90100]", "[-90000 908 3237 51236 90100]"),
-	}, t)
+func exportedSolution(e ite.Exported) ite.Exported {
+	return ite.Exported{A: 1, B: 2}
+}
 
-	if !success {
-		return
-	}
+func inc(i int) int {
+	return i + 1
 }
 
 func incMatrix(a [][]int32) [][]int32 {
@@ -302,14 +67,265 @@ func incMatrix(a [][]int32) [][]int32 {
 	return a
 }
 
-func TestIncMatrix(t *testing.T) {
-	i := goi.NewInterview[[][]int32, [][]int32]()
-	i.AddSolution(incMatrix)
-	i.ReadCases("test_data/incMatrix_in.txt", "test_data/incMatrix_out.txt")
+func loopFactorial(n int) (r int) {
+	r = 1
+
+	for i := 1; i <= n; i++ {
+		r *= i
+	}
+
+	return
+}
+
+func noInc(i int) int {
+	return i
+}
+
+func recursiveFactorial(n int) int {
+	if n <= 1 {
+		return 1
+	}
+
+	return n * recursiveFactorial(n-1)
+}
+
+func runes(s []rune) []rune {
+	s[0] = 'A'
+	return s
+}
+
+func unexportedDouble(e unexported) unexported {
+	return unexported{a: e.a * 2, B: e.B * 2}
+}
+
+func unexportedNestedInc(e unexportedNested) unexportedNested {
+	return unexportedNested{
+		unexported: unexported{a: e.a + 1, B: e.B + 2},
+		C:          100,
+	}
+}
+
+func TestBytes(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[[]byte, []byte]()
+	iv.ShowBytesAsString()
+	input := []byte("hello")
+
+	iv.AddCase(input, []byte("Aello"))
+	iv.AddSolution(bytes)
+
+	s := iv.RunAllSolutions()
+	data := string(input)
+
+	if data != "hello" {
+		t.Throw(1, "Input changed from hello to %s", data)
+		return
+	}
+
+	t.CheckSlice(&s, "bytes")
+
+	if d := len(s.Receipts[0].Lines); d != 1 {
+		t.Throw(1, "Number of lines: %d", d)
+		return
+	}
+
+	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
+		t.Throw(1, "%s != Aello", a)
+	}
+}
+
+func TestExported(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[ite.Exported, ite.Exported]()
+	data := ite.Exported{A: 1, B: 2}
+	iv.AddCase(data, ite.Exported{A: 3, B: 4})
+	iv.AddSolution(exportedSolution)
+
+	rec, err := iv.RunSolution("exportedSolution")
+	t.CheckName(err, rec.Name, "exportedSolution")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("{1 2}", "{1 2}", "{3 4}"),
+	})
+}
+
+func TestExportedNested(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[ite.ExportedNested, ite.ExportedNested]()
+	iv.AddCase(
+		ite.ExportedNested{Exported: ite.Exported{A: 50, B: 100}, C: 3},
+		ite.ExportedNested{Exported: ite.Exported{A: 51, B: 102}, C: 100})
+	iv.AddSolution(exportedNestedSolution)
+
+	rec, err := iv.RunSolution("exportedNestedSolution")
+	t.CheckName(err, rec.Name, "exportedNestedSolution")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("50/100/3", "51/102/100", "51/102/100"),
+	})
+}
+
+func TestFactorial(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[int, int]()
+
+	iv.AddCase(0, 1)
+	iv.AddCase(1, 1)
+	iv.AddCase(2, 2)
+	iv.AddCase(3, 6)
+	iv.AddCase(4, 24)
+	iv.AddCase(5, 120)
+
+	iv.AddSolutions(badFactorial, loopFactorial, recursiveFactorial)
+
+	bad, err := iv.RunSolution("badFactorial")
+	t.CheckName(err, bad.Name, "badFactorial")
+	t.CheckLines(bad.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "0", "1"),
+		ite.NewReceiptLine("1", "1", "1"),
+		ite.NewReceiptLine("2", "3", "2"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "10", "24"),
+		ite.NewReceiptLine("5", "15", "120"),
+	})
+
+	loop, err := iv.RunSolution("loopFactorial")
+	t.CheckName(err, loop.Name, "loopFactorial")
+	t.CheckLines(loop.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "1", "1"),
+		ite.NewReceiptLine("1", "1", "1"),
+		ite.NewReceiptLine("2", "2", "2"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "24", "24"),
+		ite.NewReceiptLine("5", "120", "120"),
+	})
+
+	rec, err := iv.RunSolution("recursiveFactorial")
+	t.CheckName(err, rec.Name, "recursiveFactorial")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("0", "1", "1"),
+		ite.NewReceiptLine("1", "1", "1"),
+		ite.NewReceiptLine("2", "2", "2"),
+		ite.NewReceiptLine("3", "6", "6"),
+		ite.NewReceiptLine("4", "24", "24"),
+		ite.NewReceiptLine("5", "120", "120"),
+	})
+}
+
+func TestIncMatrix(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[[][]int32, [][]int32]()
+	iv.AddSolution(incMatrix)
+	iv.ReadCases("test_data/incMatrix_in.txt", "test_data/incMatrix_out.txt")
 
 	if expected, err := ite.ReadAllText("test_data/incMatrix_stdout.txt"); err != nil {
-		ite.Throw(t, 1, err.Error())
+		t.Throw(1, err.Error())
 	} else {
-		ite.CheckStrings(t, 1, i.AllSolutionsToString(), expected)
+		t.CheckStrings(1, iv.AllSolutionsToString(), expected)
 	}
+}
+
+func TestNoData(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[bool, int]()
+
+	t.CheckStrings(1, iv.AllSolutionsToString(),
+		"No test cases provided by the user!")
+
+	iv.AddCase(false, 0)
+	t.CheckStrings(1, iv.AllSolutionsToString(),
+		"No solution functions provided by the user!")
+}
+
+func TestRunes(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[[]rune, []rune]()
+	iv.ShowBytesAsString()
+	input := []rune("hello")
+
+	iv.AddCase(input, []rune("Aello"))
+	iv.AddSolution(runes)
+
+	s := iv.RunAllSolutions()
+	data := string(input)
+
+	if data != "hello" {
+		t.Throw(1, "Input changed from hello to %s", data)
+		return
+	}
+
+	t.CheckSlice(&s, "runes")
+
+	if d := len(s.Receipts[0].Lines); d != 1 {
+		t.Throw(1, "Number of lines: %d", d)
+		return
+	}
+
+	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
+		t.Throw(1, "%s != Aello", a)
+	}
+}
+
+func TestSort1D(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[[]int, []int]()
+	iv.AddSolution(badSort)
+	iv.ReadCases("test_data/sort_in.txt", "test_data/sort_out.txt")
+
+	rec, err := iv.RunSolution("badSort")
+	t.CheckName(err, rec.Name, "badSort")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("[1 3 5 7 9]", "[0 3 5 7 9]", "[1 3 5 7 9]"),
+		ite.NewReceiptLine("[9 0 7 8 9]", "[0 7 8 9 9]", "[0 7 8 9 9]"),
+		ite.NewReceiptLine("[3 3 3 2 2]", "[0 2 3 3 3]", "[2 2 3 3 3]"),
+		ite.NewReceiptLine("[0 0 2 -1 -3 -2]", "[0 -2 -1 0 0 2]", "[-3 -2 -1 0 0 2]"),
+		ite.NewReceiptLine("[51236 3237 908 -90000 90100]", "[0 908 3237 51236 90100]", "[-90000 908 3237 51236 90100]"),
+	})
+}
+
+func TestStdout(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[int, int]()
+	iv.AddCase(1, 2)
+	iv.AddCase(65, 66)
+	iv.AddSolutions(noInc, inc)
+
+	if expected, err := ite.ReadAllText("test_data/inc_stdout.txt"); err != nil {
+		t.Throw(1, err.Error())
+	} else {
+		t.CheckStrings(1, iv.AllSolutionsToString(), expected)
+	}
+}
+
+func TestUnexported(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[unexported, unexported]()
+	iv.AddCase(
+		unexported{a: 3, B: 5},
+		unexported{a: 6, B: 10})
+	iv.AddSolution(unexportedDouble)
+	iv.ShowFieldNames()
+
+	rec, err := iv.RunSolution("unexportedDouble")
+	t.CheckName(err, rec.Name, "unexportedDouble")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("{a:3 B:5}", "{a:6 B:10}", "{a:6 B:10}"),
+	})
+}
+
+func TestUnexportedNested(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[unexportedNested, unexportedNested]()
+	iv.AddCase(
+		unexportedNested{unexported: unexported{a: 1, B: 2}, C: 3},
+		unexportedNested{unexported: unexported{a: 2, B: 4}, C: 100})
+	iv.AddSolution(unexportedNestedInc)
+	iv.ShowFieldNames()
+
+	rec, err := iv.RunSolution("unexportedNestedInc")
+	t.CheckName(err, rec.Name, "unexportedNestedInc")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine(
+			"{unexported:{a:1 B:2} C:3}",
+			"{unexported:{a:2 B:4} C:100}",
+			"{unexported:{a:2 B:4} C:100}"),
+	})
 }

@@ -10,92 +10,97 @@ import (
 // Delegates all implementation to Interview2
 // with a dummy type for the second input.
 type Interview[I any, O any] struct {
+	ite.EmbeddedOptions
 	iv Interview2[I, int, O]
 }
 
 // Constructs an Interview object
 func NewInterview[I any, O any]() Interview[I, O] {
+	options := ite.NewEmbeddedOptions()
+
 	return Interview[I, O]{
-		iv: newInterview2Impl[I, int, O](true),
+		EmbeddedOptions: options,
+		iv:              newInterview2Impl[I, int, O](true, &options),
 	}
 }
 
 // Adds one test case
-func (i *Interview[I, O]) AddCase(input I, expected O) {
-	i.iv.AddCase(input, 0, expected)
+func (iv *Interview[I, O]) AddCase(input I, expected O) {
+	iv.iv.AddCase(input, 0, expected)
+}
+
+// Converts strings to a byte or rune slices and attempts
+// to add those slices as a new test case.
+// Panics if any string cannot be converted to its target type.
+func (iv *Interview[I, O]) AddCaseString(input string, expected string) {
+	iv.iv.AddCaseString(input, "", expected)
 }
 
 // Adds multiple test cases
-func (i *Interview[I, O]) AddCases(input []I, expected []O) {
-	i.iv.AddCasesSlice(input, []int{}, expected, 0, -1)
+func (iv *Interview[I, O]) AddCases(input []I, expected []O) {
+	iv.iv.AddCasesSlice(input, []int{}, expected, 0, -1)
 }
 
 // Adds multiple test cases in range [begin, end)
-func (i *Interview[I, O]) AddCasesSlice(input []I, expected []O, begin, end int) {
-	i.iv.AddCasesSlice(input, []int{}, expected, begin, end)
+func (iv *Interview[I, O]) AddCasesSlice(input []I, expected []O, begin, end int) {
+	iv.iv.AddCasesSlice(input, []int{}, expected, begin, end)
 }
 
 // Adds one solution function
-func (i *Interview[I, O]) AddSolution(s func(I) O) {
-	i.iv.solutions1[ite.GetFunctionName(s)] = s
+func (iv *Interview[I, O]) AddSolution(s func(I) O) {
+	iv.iv.solutions1[ite.GetFunctionName(s)] = s
 }
 
 // Adds multiple solution functions
-func (i *Interview[I, O]) AddSolutions(s ...func(I) O) {
+func (iv *Interview[I, O]) AddSolutions(s ...func(I) O) {
 	for _, f := range s {
-		i.AddSolution(f)
+		iv.AddSolution(f)
 	}
 }
 
 // Runs all solutions against all test cases
 // and compiles the output into a single string
-func (i *Interview[I, O]) AllSolutionsToString() string {
-	return i.iv.AllSolutionsToString()
-}
-
-// Changes options so that byte, uint8, rune and int32 are all
-// printed as characters
-func (i *Interview[I, O]) BytesAsString() {
-	i.iv.BytesAsString()
+func (iv *Interview[I, O]) AllSolutionsToString() string {
+	return iv.iv.AllSolutionsToString()
 }
 
 // Runs all solutions against all test cases
 // and prints the output to the standard output
-func (i *Interview[I, O]) Print() error {
-	return i.iv.Print()
+func (iv *Interview[I, O]) Print() error {
+	return iv.iv.Print()
 }
 
 // Reads one case from relative paths for input and output
-func (i *Interview[I, O]) ReadCase(inputRelPath, expectedRelPath string) {
-	i.iv.ReadCase(inputRelPath, "", expectedRelPath)
+func (iv *Interview[I, O]) ReadCase(inputRelPath, expectedRelPath string) {
+	iv.iv.ReadCase(inputRelPath, "", expectedRelPath)
 }
 
 // Reads multiple cases from relative paths for input and output
-func (i *Interview[I, O]) ReadCases(inputRelPath, expectedRelPath string) {
-	i.iv.ReadCases(inputRelPath, "", expectedRelPath)
+func (iv *Interview[I, O]) ReadCases(inputRelPath, expectedRelPath string) {
+	iv.iv.ReadCases(inputRelPath, "", expectedRelPath)
 }
 
 // Reads multiple cases from relative paths for input and output.
 // Only the cases in range [begin, end) are added.
-func (i *Interview[I, O]) ReadCasesSlice(
+func (iv *Interview[I, O]) ReadCasesSlice(
 	inputRelPath, expectedRelPath string, begin, end int,
 ) {
-	i.iv.ReadCasesSlice(inputRelPath, "", expectedRelPath, begin, end)
+	iv.iv.ReadCasesSlice(inputRelPath, "", expectedRelPath, begin, end)
 }
 
 // Runs one solution function against all test cases.
 // If function cannot be found, an error is returned.
-func (i *Interview[I, O]) RunSolution(name string) (ite.Receipt, error) {
-	return i.iv.RunSolution(name)
+func (iv *Interview[I, O]) RunSolution(name string) (ite.Receipt, error) {
+	return iv.iv.RunSolution(name)
 }
 
 // Runs all solutions against all test cases
-func (i *Interview[I, O]) RunAllSolutions() ite.ReceiptSlice {
-	return i.iv.RunAllSolutions()
+func (iv *Interview[I, O]) RunAllSolutions() ite.ReceiptSlice {
+	return iv.iv.RunAllSolutions()
 }
 
 // Runs all solutions against all test cases
 // and writes the results into a writer w
-func (i *Interview[I, O]) WriteAllSolutions(w io.Writer) error {
-	return i.iv.WriteAllSolutions(w)
+func (iv *Interview[I, O]) WriteAllSolutions(w io.Writer) error {
+	return iv.iv.WriteAllSolutions(w)
 }

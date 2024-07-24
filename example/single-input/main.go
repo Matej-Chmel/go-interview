@@ -19,14 +19,14 @@ func recursiveFactorial(n int) int {
 }
 
 func main() {
-	i := goi.NewInterview[int, int]()
-	i.AddCase(1, 1)
-	i.AddCase(2, 2)
-	i.AddCase(3, 6)
-	i.AddCase(4, 24)
-	i.AddCase(5, 120)
-	i.AddCase(6, 720)
+	iv := goi.NewInterview[int, int]()
+	iv.AddCase(1, 1)
+	iv.AddCase(2, 2)
+	iv.AddCase(3, 6)
+	iv.AddCase(4, 24)
+	iv.AddCase(5, 120)
+	iv.AddCase(6, 720)
 
-	i.AddSolutions(iterativeFactorial, recursiveFactorial)
-	i.Print()
+	iv.AddSolutions(iterativeFactorial, recursiveFactorial)
+	iv.Print()
 }

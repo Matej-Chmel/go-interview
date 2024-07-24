@@ -1,6 +1,18 @@
 # Go Interview
 Simple generic library for an interview preparation.
 
+## Installation
+```bash
+go get github.com/Matej-Chmel/go-interview@v1.1.3
+```
+
+## Features
+- Easy to use
+- Clear and concise output
+- Can process problems that require 1 or 2 input types
+- Can process unexported fields in structs
+- Can display byte and rune slices as a string
+
 ## Guide
 The library operates as a test driver.
 
@@ -33,16 +45,16 @@ func recursiveFactorial(n int) int {
 }
 
 func main() {
-	i := goi.NewInterview[int, int]()
-	i.AddCase(1, 1)
-	i.AddCase(2, 2)
-	i.AddCase(3, 6)
-	i.AddCase(4, 24)
-	i.AddCase(5, 120)
-	i.AddCase(6, 720)
+	iv := goi.NewInterview[int, int]()
+	iv.AddCase(1, 1)
+	iv.AddCase(2, 2)
+	iv.AddCase(3, 6)
+	iv.AddCase(4, 24)
+	iv.AddCase(5, 120)
+	iv.AddCase(6, 720)
 
-	i.AddSolutions(iterativeFactorial, recursiveFactorial)
-	i.Print()
+	iv.AddSolutions(iterativeFactorial, recursiveFactorial)
+	iv.Print()
 }
 ```
 
@@ -80,11 +92,11 @@ func add(a, b int) int {
 }
 
 func main() {
-	i := goi.NewInterview2[int, int, int]()
-	i.AddCase(1, 1, 2)
-	i.AddCase(2, 2, 4)
-	i.AddSolution(add)
-	i.Print()
+	iv := goi.NewInterview2[int, int, int]()
+	iv.AddCase(1, 1, 2)
+	iv.AddCase(2, 2, 4)
+	iv.AddSolution(add)
+	iv.Print()
 }
 ```
 
@@ -155,13 +167,13 @@ func matrixMult(a, b [][]int8) [][]int8 {
 }
 
 func main() {
-	i := goi.NewInterview2[[][]int8, [][]int8, [][]int8]()
-	i.AddSolution(matrixMult)
-	i.ReadCases(
+	iv := goi.NewInterview2[[][]int8, [][]int8, [][]int8]()
+	iv.AddSolution(matrixMult)
+	iv.ReadCases(
 		"test_data/matrixMult_in.txt",
 		"test_data/matrixMult_in2.txt",
 		"test_data/matrixMult_out.txt")
-	i.Print()
+	iv.Print()
 }
 ```
 
@@ -189,4 +201,76 @@ matrixMult
 (OK) 0 -1 2   3 -3 1    0 3 2
      1 1 0  , -2 0 2 -> -2 0 0
      -3 4 -2  4 -5 3    -12 -20 -6
+```
+
+## Unexported fields
+The library can handle unexported fields in structs without any problems.
+
+```go
+package main
+
+import goi "github.com/Matej-Chmel/go-interview"
+
+type myStruct struct {
+	a int
+	b float32
+	c complex64
+}
+
+func sumOfFields(m myStruct) float32 {
+	return float32(m.a) + m.b + real(m.c) + imag(m.c)
+}
+
+func main() {
+	i := goi.NewInterview[myStruct, float32]()
+	i.AddCase(myStruct{1, 2.2, 3.3 + 4.4i}, 10.9)
+	i.AddSolution(sumOfFields)
+	i.ShowFieldNames()
+	i.Print()
+}
+```
+
+### Output
+```none
+sumOfFields
+===========
+(OK) {a:1 b:2.2 c:(3.3+4.4i)} -> 10.9
+```
+
+## Byte slice as string
+Many interview problems operate on a byte slice that represents
+a mutable string. The user can call `ShowBytesAsString()`
+on an `Interview` struct to make the output more readable.
+
+```go
+package main
+
+import goi "github.com/Matej-Chmel/go-interview"
+
+func flipCase(data []byte) []byte {
+	for i, v := range data {
+		if v >= 'A' && v <= 'Z' {
+			data[i] = v + 32
+		} else if v >= 'a' && v <= 'z' {
+			data[i] = v - 32
+		}
+	}
+
+	return data
+}
+
+func main() {
+	i := goi.NewInterview[[]byte, []byte]()
+	i.AddCaseString("Hello world", "hELLO WORLD")
+	i.AddSolution(flipCase)
+	i.ShowBytesAsString()
+	i.Print()
+}
+```
+
+### Output
+```none
+flipCase
+========
+(OK) Hello world -> hELLO WORLD
 ```
