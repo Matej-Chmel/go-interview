@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"strings"
 
 	at "github.com/Matej-Chmel/go-any-to-string"
@@ -318,27 +317,12 @@ func (iv *Interview2[I, I2, O]) RunSolution(name string) (ite.Receipt, error) {
 }
 
 // Runs all solutions against all test cases
-func (iv *Interview2[I, I2, O]) RunAllSolutions() (s ite.ReceiptSlice) {
-	i := 0
-
+func (iv *Interview2[I, I2, O]) RunAllSolutions() ite.ReceiptSlice {
 	if iv.isSingleInput {
-		s.Receipts = make([]ite.Receipt, len(iv.solutions1))
-
-		for _, f := range iv.solutions1 {
-			s.Receipts[i] = iv.runFunction1(f)
-			i++
-		}
-	} else {
-		s.Receipts = make([]ite.Receipt, len(iv.solutions2))
-
-		for _, f := range iv.solutions2 {
-			s.Receipts[i] = iv.runFunction2(f)
-			i++
-		}
+		return ite.ExecuteSolutions(iv.solutions1, iv.runFunction1)
 	}
 
-	sort.Sort(&s)
-	return
+	return ite.ExecuteSolutions(iv.solutions2, iv.runFunction2)
 }
 
 // Runs all solutions against all test cases

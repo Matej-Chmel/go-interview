@@ -111,10 +111,14 @@ func TestBytes(ot *testing.T) {
 	iv.ShowBytesAsString()
 	input := []byte("hello")
 
+	// Test that input is deep copied
 	iv.AddCase(input, []byte("Aello"))
+
+	// Test that conversion from string works
+	iv.AddCaseString("abcd", "Abcd")
 	iv.AddSolution(bytes)
 
-	s := iv.RunAllSolutions()
+	rec := iv.RunAllSolutions()
 	data := string(input)
 
 	if data != "hello" {
@@ -122,16 +126,16 @@ func TestBytes(ot *testing.T) {
 		return
 	}
 
-	t.CheckSlice(&s, "bytes")
-
-	if d := len(s.Receipts[0].Lines); d != 1 {
-		t.Throw(1, "Number of lines: %d", d)
+	if len(rec.Receipts) != 1 {
+		t.Throw(1, "More receipts (%d)", len(rec.Receipts))
 		return
 	}
 
-	if a := s.Receipts[0].Lines[0].Actual; a != "Aello" {
-		t.Throw(1, "%s != Aello", a)
-	}
+	t.CheckSlice(&rec, "bytes")
+	t.CheckLines(rec.Receipts[0].Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("hello", "Aello", "Aello"),
+		ite.NewReceiptLine("abcd", "Abcd", "Abcd"),
+	})
 }
 
 func TestExported(ot *testing.T) {
