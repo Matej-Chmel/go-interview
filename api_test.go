@@ -227,6 +227,21 @@ func TestIncMatrix(ot *testing.T) {
 	}
 }
 
+func TestNil(ot *testing.T) {
+	t := ite.NewTester(ot)
+	iv := goi.NewInterview[*ite.ExportedNested, *ite.ExportedNested]()
+	iv.AddCase(nil, nil)
+	iv.AddSolution(func(e *ite.ExportedNested) *ite.ExportedNested {
+		return nil
+	})
+
+	rec, err := iv.RunSolution("func1")
+	t.CheckName(err, rec.Name, "func1")
+	t.CheckLines(rec.Lines, []*ite.ReceiptLine{
+		ite.NewReceiptLine("nil", "nil", "nil"),
+	})
+}
+
 func TestNoData(ot *testing.T) {
 	t := ite.NewTester(ot)
 	iv := goi.NewInterview[bool, int]()

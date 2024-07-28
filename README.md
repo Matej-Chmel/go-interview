@@ -3,7 +3,7 @@ Simple generic library for an interview preparation.
 
 ## Installation
 ```bash
-go get github.com/Matej-Chmel/go-interview@v1.1.4
+go get github.com/Matej-Chmel/go-interview@v1.1.5
 ```
 
 ## Features

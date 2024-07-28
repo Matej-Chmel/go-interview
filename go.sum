@@ -1,5 +1,5 @@
-github.com/Matej-Chmel/go-any-to-string v1.1.2 h1:oJL1+gZi2+WHYZZRADjk9dO0fpZO8MF3Qew4CHGymc8=
-github.com/Matej-Chmel/go-any-to-string v1.1.2/go.mod h1:j7nLBdvgF8XFdnCWnJPt9DQ3XHTLXCWSQ4EZTwB24hI=
+github.com/Matej-Chmel/go-any-to-string v1.1.3 h1:0L3HVSeDd1E5bMW+86aR91Cv9Irn/7+MX2JnJTJi6Y4=
+github.com/Matej-Chmel/go-any-to-string v1.1.3/go.mod h1:j7nLBdvgF8XFdnCWnJPt9DQ3XHTLXCWSQ4EZTwB24hI=
 github.com/Matej-Chmel/go-deep-copy v1.0.5 h1:9RYsycgcMsR09H9VTWmkbEJJkN0ZPFpuk0hdv9+gLdQ=
 github.com/Matej-Chmel/go-deep-copy v1.0.5/go.mod h1:Cg0nuxB7R8cV7pQ++7fyvkJmBhWEFEqvqrpM7WzkA18=
 github.com/Matej-Chmel/go-generic-stack v1.0.5 h1:cif36YgdJznSUYQeRjIlQ/7BysCVvONenEEqsfjo4T8=
